@@ -1,29 +1,18 @@
 use solana_client::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
+use solana_sdk::{
+    pubkey::Pubkey,
+    signature::{keypair::read_keypair_file},
+    signer::Signer,
+};
 
-use std::path::{Path, PathBuf};
-
-mod utils;
+use std::path::{Path};
 
 fn main() {
     println!("Start example");
-    
-    let client = RpcClient::new("http://localhost:8899".into());
 
-    match utils::get_u8_64(Path::new("wallets/wallet1.json")) {
-        Ok(d)=>{
-            match Keypair::from_bytes(d.as_slice()){
-                Ok(kp)=>{
-                    client.get_balance()
-                },
-                Err(e)=>{
-                    panic!("Error by data to keypair: {:?}", e);
-                }
-            }
-        },
-        Err(e)=>{
-            panic!("Error by read data: {:?}", e);
-        }
-    }
-    
+    let client = RpcClient::new("http://localhost:8899".into());
+    let kp = read_keypair_file(Path::new("wallets/wallet1.json")).expect("Can`t read kp file");
+    let pb: Pubkey = kp.pubkey();
+    let bl = client.get_balance(&pb);
+    println!("Wallet 1 balance: {:?}", bl);
 }
